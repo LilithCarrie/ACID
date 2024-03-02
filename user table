@@ -1,0 +1,35 @@
+import psycopg2
+
+conn = psycopg2.connect(
+    dbname="mydatabase",
+    user="myuser",
+    password="mypassword",
+    host="localhost",
+    port="5432"
+)
+
+cursor = conn.cursor()
+
+cursor.execute('''CREATE TABLE IF NOT EXISTS employees
+                (id SERIAL PRIMARY KEY, name TEXT, age INTEGER)''')
+
+def insert_employee(name, age):
+    cursor.execute('INSERT INTO employees (name, age) VALUES (%s, %s)', (name, age))
+
+conn.autocommit = False
+
+try:
+    insert_employee('Alice', 25)
+    insert_employee('Bob', 30)
+
+    conn.commit()
+    print("Transaction committed successfully!")
+except Exception as e:
+    conn.rollback()
+    print("Transaction rolled back:", e)
+
+cursor.execute('SELECT * FROM employees')
+print("All employees:", cursor.fetchall())
+
+cursor.close()
+conn.close()
